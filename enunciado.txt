@@ -1,0 +1,103 @@
+Objectiu
+L’objectiu d’aquesta pràctica avaluable és aplicar els conceptes i tècniques apresos al llarg del
+curs d’Aprenentatge Automàtic per dissenyar i desenvolupar solucions a un problema real.
+
+L’ús de l’aprenentatge automàtic per a l’anàlisi d’imatges mèdiques és cada vegada més
+habitual en la literatura. En particular, les tasques de classificació, detecció i segmentació
+tenen una especial rellevància en aquest tipus de problemes.
+En aquesta direcció, s’han desenvolupat múltiples concursos centrats en la resolució de
+problemes associats a imatges mèdiques. La pàgina Grand Challenge(https://grand-challenge.org) recull una gran varietat
+d’aquests concursos, alguns d’una dificultat considerable, com es pot veure en la manca de
+solucions completes. En aquesta pràctica treballarem amb dades provinents d’un d’aquests
+concursos.
+
+NODE21(https://node21.grand-challenge.org)
+NODE21 és un conjunt de dades i concurs dedicat a l’anàlisi de radiografies de pit (CXR per
+les seves sigles en anglès). A la figura 1 es mostra un exemple d’imatge.
+Figura 1: Exemple d’una radiografia de pit del conjunt de dades NODE21.
+
+'''
+NODE21 is a challenge with two tracks. We invite teams to develop algorithms
+to detect nodules and algorithms to generate nodules in chest radiographs. The
+goal is to develop, collectively, a high-performance open-source solution for this
+important clinical task. We will use the algorithms to generate nodules to create
+additional training data for the detection algorithms. We hope to show that gene-
+rative models can be used to improve detection models for a relevant medical AI
+application.
+[...]
+The detection of lung nodules on CXR can be difficult, depending on their size,
+density, and location. Since the CXR is a projection image, the nodule is projected
+to the same pixels as other anatomical structures including the heart, hilum, or
+diaphragm, which can make them extremely subtle or even impossible to detect.
+'''
+
+Les imatges es troben en format .mha. Per llegir la informació de la imatge en aquest
+format podeu emprar la llibreria OpenCXR(https://github.com/DIAGNijmegen/opencxr)
+
+Descripció de la pràctica
+La pràctica consisteix a aplicar tècniques d’aprenentatge automàtic al problema proposat en
+NODE21. Per facilitar-ne el desenvolupament, hem definit un conjunt de tasques seqüencials.
+Cada tasca té una nota màxima associada i per poder realitzar la següent cal haver completat
+la precedent. Així, per exemple, no és vàlid fer la tercera tasca sense haver resolt la primera i
+la segona.
+Les tasques a realitzar són les següents:
+1. Classificació. Es demana aplicar les tècniques vistes a classe per resoldre un problema
+de classificació binària: determinar si una imatge conté, o no, nòduls pulmonars. S’han
+de provar quatre models diferents dels vists a classe. Es recomana que com a màxim
+s’empri un únic model entrenat des de 0. L’ús de transfer learning o pre-tasques es valo-
+rarà positivament. La realització correcta d’aquesta tasca permet obtenir com a màxim
+una nota de 5 sobre 10.
+
+
+
+
+NODE21:
+
+Welcome to NODE21
+NODE21 is a challenge with two tracks.  We invite teams to develop algorithms to detect nodules and algorithms to generate nodules in chest radiographs. The goal is to develop, collectively,  a high-performance open-source solution for this important clinical task. We will use the algorithms to generate nodules to create additional training data for the detection algorithms. We hope to show that generative models can be used to improve detection models for a relevant medical AI application.
+
+Why?
+
+Among both men and women, lung cancer causes the greatest number of cancer deaths worldwide. Symptoms of lung cancer typically occur at an advanced stage of the disease, when treatment has a reduced chance of success. Early detection is therefore a key factor in reducing mortality rates from lung cancer. Pulmonary nodules, detected through imaging, are the initial manifestation of lung cancer, visible well before clinical symptoms or signs emerge. They can be visible on a chest radiograph (CXR), and chest radiography is by far the most common radiological exam in the world. Thus, CXR plays a critical role in the accurate identification of nodules in the drive towards early detection of lung cancer. Pulmonary nodules are frequently encountered as incidental findings in patients undergoing routine examination or CXR imaging for issues unrelated to lung cancer.
+
+It's not easy
+
+The detection of lung nodules on CXR can be difficult, depending on their size, density, and location. Since the CXR is a projection image, the nodule is projected to the same pixels as other anatomical structures including the heart, hilum, or diaphragm, which can make them extremely subtle or even impossible to detect. This is illustrated in the figure below.
+
+Left: a coronal CT slice from a patient with a 2 cm squamous cell lung cancer (red box). On CT, this tumor is impossible to miss. Middle: this is the average of CT slices covering 10 cm of tissue centered on the slice on the left. The nodule is still clearly visible. Right: this is the average of all CT slices and similar to what a chest radiograph of this patient would look like. Surprisingly, even though this is a large nodule, not obscured by major organs like the heart, it is still only faintly visible due to all the other structures superimposed on it. This makes nodule detection from chest radiographs challenging.
+
+There are commercial software products on the market to assist the radiologist in identifying the locations of nodules on CXR. However, the benchmarks used for the performance of these products are not publicly available. In the research community, particularly in the era of deep learning, there has been relatively little focus on accurately detecting and localizing nodules on CXR. We believe this is partly due to the high cost of annotating nodule locations on large sets of data.
+
+How?
+
+Anybody can participate in NODE21, in the generation or the detection track, or in both.  Unlike many other challenges, NODE21 is not set up as a competition, but rather as a collaboration. The goal is to collectively develop an open-source solution for nodule detection on chest x-rays. You can participate by putting your code in a public github repository, from which a docker container can be built to create an algorithm on the grand-challenge platform.  Full details and a template for how to structure the code are provided.  Your repository should contain a permissive open-source license. 
+
+We provide baseline algorithms for both generation and detection tracks.  The code structure can be used by the participants as a template for their own repositories.  We encourage participants to adapt these templates to run their own method or to model their docker image on them for submission to NODE21. 
+
+Detection track algorithms should read a frontal CXR, and return a list of possible bounding boxes for nodules, with a likelihood score for each bounding box.
+
+Generation track algorithms should also input a frontal chest radiograph and additionally a json file with locations where nodules should be generated.  They should produce an image with a generated nodule at the requested location. More details regarding the algorithms can be found on the Details page.
+
+We will, together with the participants, design various protocols where systems are trained using a mix of images with real and generated nodules.  Solutions are available as open-source code and as Algorithms that can be used at scale by any user of grand-challenge.org. 
+
+Detection
+
+The detection track aims to assess state-of-the-art detection systems to automatically detect nodules from chest X-rays. The algorithms should read a chest X-ray, and return a list of possible bounding boxes for nodules, with a likelihood score for each bounding box.
+
+Details of how to structure the code around your train and test methods are explained in the template repository here.    For successful evaluation and leaderboard placement the container you provide must run in "test" mode as described in the template repository.
+
+Evaluation of submissions to the detection track
+
+The submitted algorithms will be evaluated on the experimental test set.
+
+Various metrics will be calculated for the evaluation of detection algorithms.  We will calculate the AUC score and the sensitivity at various average false positive rates using FROC (1/4,  1/2, 1) as described below.   
+
+To calculate AUC, the likelihoods (probabilities) of any detected nodules for the image will be examined and the maximum of these will be chosen as an image score.  If there is no nodule prediction for an image, the image score will be set at 0.
+
+For FROC analysis we first deal with the scenario of multiple prediction bounding boxes overlapping a reference bounding box.  Where more than one predicted bounding box overlaps a reference with IOU>0.2 only the prediction bounding box with the maximum likelihood (probability) among them is retained.  Next, we count true and false positives.  A prediction bounding box will be considered as a true positive if it overlaps with the reference standard bounding box at IOU>0.2, otherwise, it will be considered a false positive. Next, we select the average sensitivity at 3 predefined false positive rates: 1/8, 1/4, 1/2 FPs per image. For the case that FROC analysis does not include the predefined average false positive rate hence the corresponding average sensitivity cannot be known, the highest sensitivity value from FROC analysis is used. The submitted algorithms should implement their own post-processing to remove overlapping bounding box predictions (e.g. via non-max suppression); otherwise, they all might be counted as FP. 
+
+Training dataset
+
+We provide a NODE21 public CXR training dataset. This dataset consists of frontal chest radiographs with annotated bounding boxes around nodules. It consists of 4882 frontal chest radiographs where 1134 CXR images (1476 nodules) are annotated with bounding boxes around nodules and the remaining 3748 images are free of nodules hence represent the negative class. The images in this set are from public datasets that allow us to remix and redistribute. They come from the following sources:
+
+This dataset can be used for training systems in both the detection and generation tracks. The annotations were provided by our chest radiologists. This dataset is under the folder called dataset_node21/cxr_images. If you would like to read more about the selection and annotation process, please refer to this page. We provide both original and preprocessed versions of the dataset. Each version of the dataset (preprocessed or original) contains a label file called *'metadata.csv', *which denotes the location of the nodule bounding boxes (x, y, width, height, label). The label is 1 if an image contains any nodule, it is 0 otherwise.
