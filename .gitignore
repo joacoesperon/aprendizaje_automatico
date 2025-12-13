@@ -16,6 +16,7 @@ build/
 *.ipynb_checkpoints
 
 # Data files (muy grandes para git)
+dataset_node21/
 dataset_node21/cxr_images/**/*.mha
 dataset_node21/ct_patches/**/*.mha
 *.mha
