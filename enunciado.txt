@@ -48,7 +48,12 @@ s’empri un únic model entrenat des de 0. L’ús de transfer learning o pre-t
 rarà positivament. La realització correcta d’aquesta tasca permet obtenir com a màxim
 una nota de 5 sobre 10.
 
-
+Guia como hacerlo:
+Sobre la parte de clasificación, básicamente tenemos que hacer dos cosas distintas. La primera es entrenar un modelo desde cero: aquí toca construir una CNN sencilla por nuestra cuenta, con algunas capas convolucionales, capas de pooling y una parte final fully connected. Este modelo lo entrenamos completamente desde cero con nuestras imágenes, sin usar pesos preentrenados ni arquitecturas famosas. Es normal que el rendimiento no sea muy bueno, porque con pocos datos entrenar desde cero suele dar malos resultados, pero la idea del profesor es que entendamos todo el proceso completo.
+La segunda parte consiste en entrenar tres modelos utilizando transfer learning. Aquí sí usamos modelos preentrenados como ResNet, EfficientNet, MobileNet, VGG, DenseNet o los que queramos. La mecánica es: cargar el modelo preentrenado (normalmente en ImageNet), congelar las primeras capas para no tocarlas, sustituir la última capa para adaptarla al número de clases de nuestro problema y entrenar sólo la parte final con nuestras imágenes. Esto suele funcionar mucho mejor, porque aprovechamos características que ya han aprendido esos modelos en millones de imágenes.
+Con esto cumplimos exactamente lo que pide el profesor: un modelo desde cero y tres con transfer learning.
+Ya puedes armarte de paciencia porque no es nada rapido entrenar. Te aconsejo hacer early stopping. Vas a ganar tiempo y previenes overfitting
+Y acuerdate de guardar los modelos.. te evitaras tener q repetir entrenos…
 
 
 NODE21:
@@ -95,6 +100,30 @@ Various metrics will be calculated for the evaluation of detection algorithms.  
 To calculate AUC, the likelihoods (probabilities) of any detected nodules for the image will be examined and the maximum of these will be chosen as an image score.  If there is no nodule prediction for an image, the image score will be set at 0.
 
 For FROC analysis we first deal with the scenario of multiple prediction bounding boxes overlapping a reference bounding box.  Where more than one predicted bounding box overlaps a reference with IOU>0.2 only the prediction bounding box with the maximum likelihood (probability) among them is retained.  Next, we count true and false positives.  A prediction bounding box will be considered as a true positive if it overlaps with the reference standard bounding box at IOU>0.2, otherwise, it will be considered a false positive. Next, we select the average sensitivity at 3 predefined false positive rates: 1/8, 1/4, 1/2 FPs per image. For the case that FROC analysis does not include the predefined average false positive rate hence the corresponding average sensitivity cannot be known, the highest sensitivity value from FROC analysis is used. The submitted algorithms should implement their own post-processing to remove overlapping bounding box predictions (e.g. via non-max suppression); otherwise, they all might be counted as FP. 
+
+Preprocessing
+
+All images are provided in their original format as well as in a preprocessed .mha format.  Note that private test data is also preprocessed so we recommend the use of the preprocessed set.  The preprocessing used code from the OpenCXR library to standardize image appearance by
+
+Removal of homogeneous border regions
+Energy-based normalization of image intensity values, implementation following this paper
+Segmentation of the lung fields and cropping the image to that region
+Resizing the image to 1024x1024 pixels preserving aspect ratio and using padding on the shorter side
+
+If participants wish to preprocess other images in a similar way,  this can be achieved with code similar to that shown below:
+
+    import opencxr
+    from opencxr.utils.file_io import read_file, write_file
+    cxr_std_algorithm = opencxr.load(opencxr.algorithms.cxr_standardize)
+    full_cxr_file_path = input_folder_cxr + '/' + input_cxr_file
+
+    # read a file (supports dcm, mha, mhd, png)
+    img_np, spacing, _ = read_file(full_cxr_file_path)
+    # Do standardization of intensities, cropping to lung bounding box, and resizing to 1024
+    std_img, new_spacing, size_changes = cxr_std_algorithm.run(img_np, spacing)
+    # write the standardized file to disk
+    output_cxr_loc = output_folder_cxr + '/' + input_cxr_file
+    write_file(output_cxr_loc, std_img, new_spacing)
 
 Training dataset
 

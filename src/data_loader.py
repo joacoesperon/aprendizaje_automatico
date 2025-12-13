@@ -11,7 +11,7 @@ import torch
 from torch.utils.data import Dataset
 from PIL import Image
 
-from src.config import RAW_DATA_DIR, METADATA_FILE, IMAGE_SIZE
+from src.config import DATA_DIR, METADATA_FILE, IMAGE_SIZE, IMAGE_DIR
 
 
 def load_mha_image(image_path: str) -> np.ndarray:
@@ -90,36 +90,32 @@ class NODE21Dataset(Dataset):
     
     def __init__(
         self, 
-        metadata_df: pd.DataFrame,
-        data_dir: Path,
+        image_dir: Path,
+        image_names: list,
+        labels: list,
         transform=None,
         image_size: Tuple[int, int] = IMAGE_SIZE
     ):
         """
         Args:
-            metadata_df: DataFrame con columnas ['image_id', 'label', ...]
-            data_dir: Directorio con las imágenes .mha
+            image_dir: Directorio con las imágenes .mha
+            image_names: Lista de nombres de archivos
+            labels: Lista de etiquetas correspondientes
             transform: Transformaciones a aplicar (opcional)
             image_size: Tamaño al que redimensionar las imágenes
         """
-        self.metadata_df = metadata_df.reset_index(drop=True)
-        self.data_dir = Path(data_dir)
+        self.image_dir = Path(image_dir)
+        self.image_names = image_names
+        self.labels = labels
         self.transform = transform
         self.image_size = image_size
         
     def __len__(self):
-        return len(self.metadata_df)
+        return len(self.image_names)
     
     def __getitem__(self, idx):
-        # Obtener información de la fila
-        row = self.metadata_df.iloc[idx]
-        
         # Construir ruta de la imagen
-        image_filename = row.get('image_id', row.get('filename', None))
-        if image_filename is None:
-            raise ValueError(f"No se encontró columna 'image_id' o 'filename' en los metadatos")
-            
-        image_path = self.data_dir / image_filename
+        image_path = self.image_dir / self.image_names[idx]
         
         # Cargar imagen
         image = load_mha_image(image_path)
@@ -143,8 +139,7 @@ class NODE21Dataset(Dataset):
             image = self.transform(image)
         
         # Obtener etiqueta
-        label = row.get('label', 0)
-        label = torch.tensor(label, dtype=torch.long)
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
         
         return image, label
 
@@ -182,3 +177,24 @@ def calculate_class_weights(metadata_df: pd.DataFrame) -> torch.Tensor:
         weights.append(weight)
     
     return torch.tensor(weights, dtype=torch.float32)
+
+
+def get_train_transforms():
+    """Transformaciones para entrenamiento (con augmentation)"""
+    from torchvision import transforms
+    
+    return transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+
+def get_val_test_transforms():
+    """Transformaciones para validación/test (sin augmentation)"""
+    from torchvision import transforms
+    
+    return transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
