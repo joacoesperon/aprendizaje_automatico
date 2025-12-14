@@ -1,117 +1,61 @@
-# NODE21 - Lung Nodule Classification
+# Entrenar localmente los modelos NODE21 (Windows)
 
-Proyecto de clasificacion binaria de nodulos pulmonares en radiografias de torax (CXR) usando el dataset NODE21.
+Este proyecto entrena clasificadores binarios (nódulo vs no nódulo) sobre el dataset NODE21 utilizando PyTorch.
 
-## Estructura del Proyecto
+## Requisitos
+- Python 3.10+
+- Windows 10/11
+- (Opcional) GPU NVIDIA con CUDA/cuDNN instalados para aceleración
 
-```
-├── src/
-│   ├── config.py                 # Configuracion global
-│   ├── models.py                 # SimpleCNN, ResNet50, DenseNet121, EfficientNetB0
-│   ├── data_loader.py            # Dataset y transformaciones
-│   ├── data_splits.py            # Generacion de splits train/test
-│   └── evaluate.py               # Metricas
-├── notebooks/
-│   ├── 01_eda.ipynb              # Analisis exploratorio (COMPLETADO)
-│   ├── 02_train_SimpleCNN.ipynb  # Entrenar SimpleCNN
-│   ├── 03_train_ResNet50.ipynb   # Entrenar ResNet50
-│   ├── 04_train_DenseNet121.ipynb # Entrenar DenseNet121
-│   ├── 05_train_EfficientNetB0.ipynb # Entrenar EfficientNetB0
-│   └── 06_comparison.ipynb       # Comparar modelos
-├── dataset_node21/
-│   └── cxr_images/proccessed_data/
-│       ├── images/               # Imagenes .mha
-│       └── metadata.csv
-└── models/                       # Modelos entrenados (auto-generado)
+## Instalación
+En PowerShell (ajusta la ruta del proyecto según tu ordenador):
+```powershell
+# Seleccionar directorio del proyecto (ejemplo, ajusta según tu PC)
+cd <seleccionar-directorio-del-proyecto>
+
+# Crear y activar entorno virtual
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# Instalar dependencias
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-## Modelos
+## Estructura esperada del dataset
+- `dataset_node21/cxr_images/proccessed_data/metadata.csv`
+- `dataset_node21/cxr_images/proccessed_data/images/` (imágenes PNG/JPG)
 
-1. **SimpleCNN** - Red convolucional desde cero (4 bloques)
-2. **ResNet50** - Transfer Learning con ImageNet
-3. **DenseNet121** - Transfer Learning con ImageNet
-4. **EfficientNet-B0** - Transfer Learning con ImageNet
+## Ejecutar los notebooks localmente
+1. Abrir VS Code y el workspace del proyecto.
+2. Seleccionar el kernel de Python del entorno `.venv` (Menú superior del notebook → Selector de kernel → elige el intérprete de `.venv`).
+3. Abrir uno de los notebooks en `notebooks/`:
+   - `02_train_SimpleCNN.ipynb`
+   - `03_train_ResNet50.ipynb`
+   - `04_train_DenseNet121.ipynb`
+   - `05_train_EfficientNetB0.ipynb`
+4. Ejecutar las celdas de arriba hacia abajo.
 
-## Uso en Google Colab
+Cada notebook:
+- Configura rutas locales (`PROJECT_PATH` y `DATASET_PATH`).
+- Carga `metadata.csv` y genera el split 80/20 estratificado (`random_state=42`).
+- Entrena por hasta 20 épocas con `lr=0.01` y early stopping según pérdida de entrenamiento (paciencia=3).
+- Evalúa en el test set y guarda `best_model.pth` y `metrics.json` en `models/<Modelo>/`.
 
-### 1. Subir proyecto a Google Drive
+## Verificar aceleración (CUDA)
+En la primera celda de cada notebook se imprime si hay GPU disponible (`torch.cuda.is_available()`). En Windows, para usar GPU NVIDIA necesitas instalar PyTorch con CUDA compatible con tu driver:
 
-Subir toda la carpeta `aprendizaje_automatico/` a tu Google Drive.
+1. Verifica la versión de CUDA soportada por tu GPU/driver.
+2. Instala PyTorch con CUDA siguiendo la guía oficial: https://pytorch.org/get-started/locally/
 
-### 2. Ejecutar notebooks en orden
-
-Cada notebook esta preparado para Google Colab con GPU:
-
-1. **01_eda.ipynb** - Analisis exploratorio (ya completado)
-2. **02_train_SimpleCNN.ipynb** - Entrenar primer modelo
-3. **03_train_ResNet50.ipynb** - Transfer Learning
-4. **04_train_DenseNet121.ipynb** - Transfer Learning
-5. **05_train_EfficientNetB0.ipynb** - Transfer Learning
-6. **06_comparison.ipynb** - Comparar resultados
-
-### 3. Configuracion de rutas
-
-En cada notebook, ajustar esta linea segun donde este tu proyecto en Drive:
-
-```python
-PROJECT_PATH = Path('/content/drive/MyDrive/aprendizaje_automatico')
+Ejemplo (PowerShell) para CUDA 12.1:
+```powershell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
+Si `torch.cuda.is_available()` es `False`, el entrenamiento se ejecutará en CPU.
 
-## Dataset
-
-- Total imagenes: 4,882
-- Positivas (con nodulos): 1,134 (23%)
-- Negativas (sin nodulos): 3,748 (77%)
-- Formato: .mha (Medical Imaging)
-- Resolucion: 1024x1024
-- Split: 80% train, 20% test (estratificado)
-
-## Entrenamiento
-
-- K-Fold Cross-Validation: 5 folds en train
-- Early Stopping: Patience de 10 epochs
-- Batch size: 32
-- Learning rate: 0.001
-- Random seed: 42 (reproducibilidad)
-
-## Metricas
-
-- Accuracy
-- Precision
-- Recall
-- F1-Score
-- AUC-ROC
-
-## Salida
-
-Cada modelo genera:
-
-```
-models/
-└── [ModelName]/
-    ├── best_model.pth        # Modelo entrenado
-    └── metrics.json          # Metricas en test
-```
-
-## Workflow
-
-1. Analisis exploratorio (01_eda.ipynb) - COMPLETADO
-2. Entrenar 4 modelos (notebooks 02-05) - Uno por uno en Colab
-3. Comparar resultados (06_comparison.ipynb)
-
-## Reproducibilidad
-
-Todos los splits usan random_state=42:
-- Split train/test: random_state=42
-- K-Fold CV: random_state=42
-- torch.manual_seed: 42
-
-Los splits se generan identicamente en cada notebook, garantizando que todos los modelos usen exactamente el mismo train/test set.
-
-## Notas
-
-- Cada notebook es independiente (genera sus propios splits)
-- Los splits son identicos porque usan el mismo random_seed
-- El test set nunca se usa durante entrenamiento
-- K-Fold CV se aplica solo en train para early stopping
-- Entrenar un modelo a la vez en Colab (GPU limitada)
+## Problemas comunes
+- Rutas: Asegura que `dataset_node21` existe en la raíz del proyecto.
+- Activación del entorno: En PowerShell usa `.venv\Scripts\Activate.ps1`.
+- CUDA: Instala el build correcto de PyTorch con CUDA que coincida con tu driver.
+ - Directorio del proyecto: Usa `cd <seleccionar-directorio-del-proyecto>` y ajusta la ruta al folder donde está el repositorio en tu PC.
